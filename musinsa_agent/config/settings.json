@@ -1,0 +1,26 @@
+{
+  "company_name": "무신사",
+  "start_year": 2010,
+  "report_codes": {
+    "annual": "11011",
+    "half_year": "11012",
+    "quarterly_q1": "11013",
+    "quarterly_q3": "11014"
+  },
+  "preferred_fs_div": "CFS",
+  "fallback_fs_div": "OFS",
+  "dart_financial_data_start_year": 2015,
+  "data_unit": "원",
+  "dashboard_title": "Musinsa Financial Analysis Dashboard",
+  "github_org": "HSC-Class01",
+  "repository_name": "musinsa_dart",
+  "pages_branch": "main",
+  "peerfirms": [
+    {"name": "카카오스타일 (지그재그)", "focus": "패션·커머스 플랫폼", "note": "국내 패션 플랫폼"},
+    {"name": "에이블리", "focus": "패션·커머스 플랫폼", "note": "스타일 커머스 플랫폼"},
+    {"name": "29CM", "focus": "셀렉트숍·패션 커머스", "note": "취향 기반 커머스"},
+    {"name": "W컨셉", "focus": "패션 커머스", "note": "디자이너 패션 중심"},
+    {"name": "브랜디", "focus": "패션·커머스 플랫폼", "note": "온라인 패션 커머스"},
+    {"name": "쿠팡", "focus": "종합 이커머스", "note": "국내 온라인 유통 대형 사업자"}
+  ]
+}

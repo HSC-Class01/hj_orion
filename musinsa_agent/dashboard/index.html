@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Musinsa Financial Analysis Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root{--yellow:#efff00;--orange:#ff8a1f;--orange2:#ffb45c;--ink:#151515;--muted:#666;--line:#e8e8e8;--card:#fff;}
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,Arial,"Noto Sans KR",sans-serif;background:#fff;color:var(--ink)}
+    header{background:var(--yellow);padding:28px 5vw 36px;border-bottom:1px solid #111}
+    .nav{display:flex;justify-content:space-between;align-items:center;gap:20px}.brand{font-weight:900;letter-spacing:-.04em;font-size:20px}.nav a{color:#111;text-decoration:none;font-size:13px;font-weight:700;margin-left:18px}
+    .hero{max-width:1200px;margin:60px auto 0}.eyebrow{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.12em}.hero h1{font-size:clamp(42px,7vw,84px);line-height:.9;margin:16px 0;letter-spacing:-.065em}.hero p{max-width:720px;font-size:17px;line-height:1.6;margin:0}
+    .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.pill{border:1px solid #111;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:800;background:rgba(255,255,255,.2)}
+    main{max-width:1200px;margin:0 auto;padding:42px 5vw 80px}.section-title{display:flex;justify-content:space-between;align-items:end;gap:20px;margin:40px 0 18px}.section-title h2{margin:0;font-size:28px;letter-spacing:-.04em}.section-title p{margin:0;color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.card{grid-column:span 3;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;min-height:125px;box-shadow:0 8px 24px rgba(0,0,0,.04)}.card.wide{grid-column:span 6}.card.full{grid-column:1/-1}.label{font-size:12px;color:var(--muted);font-weight:700}.value{font-size:28px;font-weight:900;margin-top:8px;letter-spacing:-.04em}.sub{font-size:11px;color:var(--muted);margin-top:7px}
+    .chart{min-height:360px}.chart h3{margin:0 0 10px;font-size:17px}.chart-box{height:300px}
+    .tabs{display:flex;gap:8px;margin-bottom:12px}.tab{border:1px solid #ddd;background:#fff;border-radius:999px;padding:8px 14px;font-weight:800;font-size:12px;cursor:pointer}.tab.active{background:var(--orange);border-color:#111;color:#111}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px;background:#fff}table{width:100%;border-collapse:collapse;min-width:980px}th,td{padding:11px 12px;border-bottom:1px solid #eee;text-align:right;font-size:12px;white-space:nowrap}th:first-child,td:first-child{text-align:left}th{background:#fafafa;font-size:11px;color:#666}tr:last-child td{border-bottom:0}.period-head{background:var(--orange)!important;color:#111!important;font-weight:900}
+    .peer td:first-child{font-weight:900}.peer-note{color:var(--muted);text-align:left}.footer{margin-top:48px;padding-top:24px;border-top:1px solid #ddd;color:#777;font-size:11px;line-height:1.7}.error{padding:18px;border:1px solid #e00;border-radius:12px;background:#fff5f5;color:#900}
+    @media(max-width:800px){.card,.card.wide{grid-column:1/-1}.hero{margin-top:38px}.nav a{display:none}.section-title{display:block}.section-title p{margin-top:6px}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="nav"><div class="brand">MUSINSA / DART</div><nav><a href="#overview">Overview</a><a href="#tables">Tables</a><a href="#peers">Peers</a></nav></div>
+  <div class="hero"><div class="eyebrow">OpenDART Financial Intelligence</div><h1>Musinsa<br>Financial Dashboard</h1><p>사업보고서·반기보고서·분기보고서의 주요 재무수치를 자동 수집하고, 성장성·수익성·현금흐름·재무안정성·수익률 지표로 연결해 보여주는 대시보드입니다.</p><div class="meta"><span class="pill" id="updated">업데이트 확인 중</span><span class="pill">Annual · Half-year · Quarterly</span><span class="pill">OpenDART API</span></div></div>
+</header>
+<main id="overview">
+  <div id="loadError" class="error" style="display:none"></div>
+  <section><div class="section-title"><h2>Key figures</h2><p>가장 최근에 수집된 보고서 기준</p></div><div class="grid" id="cards"></div></section>
+  <section><div class="section-title"><h2>Figures</h2><p>직관적으로 보는 매출·이익·재무구조·현금흐름</p></div><div class="grid"><div class="card wide chart"><h3>Revenue & Operating Income</h3><div id="profitChart" class="chart-box"></div></div><div class="card wide chart"><h3>Assets / Liabilities / Equity</h3><div id="balanceChart" class="chart-box"></div></div><div class="card wide chart"><h3>Margins</h3><div id="marginChart" class="chart-box"></div></div><div class="card wide chart"><h3>Operating Cash Flow</h3><div id="cashChart" class="chart-box"></div></div></div></section>
+  <section id="tables"><div class="section-title"><h2>Financial tables</h2><p>3개 카테고리로 분리된 원수치 + 주요 비율</p></div><div class="tabs"><button class="tab active" data-period="annual">Annual</button><button class="tab" data-period="half_year">Half-year</button><button class="tab" data-period="quarterly">Quarterly</button></div><div id="table"></div></section>
+  <section id="peers"><div class="section-title"><h2>Domestic peer firms</h2><p>비교 범위는 사업모델 관점의 국내 커머스·패션 사업자이며, 자동 수집 대상은 아닙니다.</p></div><div id="peerTable"></div></section>
+  <div class="footer">Source: OpenDART structured financial statement API. Structured financial statement data are currently provided from 2015 onward through the selected API; the project keeps 2010 as the requested scope but does not fabricate unavailable structured values. Q1 and Q3 are quarterly filings; H1 is the half-year filing. All figures are displayed in 원 unless noted otherwise.</div>
+</main>
+<script>
+const fmt = (v) => v==null || Number.isNaN(Number(v)) ? "—" : new Intl.NumberFormat('ko-KR',{maximumFractionDigits:0}).format(Number(v));
+const pct = (v) => v==null || Number.isNaN(Number(v)) ? "—" : `${Number(v).toFixed(1)}%`;
+const short = (v) => { if(v==null||Number.isNaN(Number(v))) return "—"; const n=Math.abs(Number(v)); const s=n>=1e12?`${(Number(v)/1e12).toFixed(1)}조`:n>=1e8?`${(Number(v)/1e8).toFixed(1)}억`:n>=1e4?`${(Number(v)/1e4).toFixed(1)}만`:fmt(v); return s; };
+let financials=[], ratios=[], metadata={};
+async function load(){
+  try{
+    [financials,ratios,metadata] = await Promise.all(['financials.json','ratios.json','metadata.json'].map(x=>fetch(`data/${x}`).then(r=>{if(!r.ok)throw Error(x);return r.json()})));
+    document.getElementById('updated').textContent=`마지막 자동 업데이트 · ${new Date(metadata.updated_at).toLocaleString('ko-KR')}`;
+    render();
+  }catch(e){document.getElementById('loadError').style.display='block';document.getElementById('loadError').textContent='대시보드 데이터를 불러오지 못했습니다. GitHub Actions의 update-and-deploy 실행 로그와 data 폴더를 확인하세요.';}
+}
+function latest(){return financials.slice().sort((a,b)=>Number(b.year)-Number(a.year))[0]||{};}
+function latestByPeriod(p){return financials.filter(x=>x.period===p).slice().sort((a,b)=>Number(b.year)-Number(a.year))[0]||{};}
+function render(){
+  const r=ratios.slice().sort((a,b)=>Number(b.year)-Number(a.year)); const latestR=r[0]||latest();
+  const cards=[['Revenue',short(latestR.revenue),'매출액'],['Operating income',short(latestR.operating_income),'영업이익'],['Net income',short(latestR.net_income),'당기순이익'],['Operating cash flow',short(latestR.operating_cash_flow),'영업활동현금흐름'],['Debt ratio',pct(latestR.debt_ratio),'부채 / 자본'],['Equity ratio',pct(latestR.equity_ratio),'자본 / 자산'],['ROA',pct(latestR.roa),'순이익 / 자산'],['ROE',pct(latestR.roe),'순이익 / 자본']];
+  document.getElementById('cards').innerHTML=cards.map(c=>`<div class="card"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="sub">${c[2]}</div></div>`).join('');
+  drawCharts(); renderTable('annual'); renderPeers();
+  document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderTable(b.dataset.period)});
+}
+function axis(){return {showgrid:true,gridcolor:'#eee',zeroline:false,tickfont:{size:10}}}
+function drawCharts(){
+  const a=ratios.slice().sort((x,y)=>Number(x.year)-Number(y.year));
+  Plotly.newPlot('profitChart',[{x:a.map(x=>x.year),y:a.map(x=>x.revenue),name:'Revenue',type:'bar'},{x:a.map(x=>x.year),y:a.map(x=>x.operating_income),name:'Operating income',type:'scatter',mode:'lines+markers'}],{margin:{t:10,r:10,b:35,l:50},paper_bgcolor:'transparent',plot_bgcolor:'transparent',legend:{orientation:'h'},yaxis:axis(),xaxis:axis()}, {displayModeBar:false,responsive:true});
+  Plotly.newPlot('balanceChart',[{x:a.map(x=>x.year),y:a.map(x=>x.total_assets),name:'Assets',type:'bar'},{x:a.map(x=>x.year),y:a.map(x=>x.total_liabilities),name:'Liabilities',type:'bar'},{x:a.map(x=>x.year),y:a.map(x=>x.total_equity),name:'Equity',type:'bar'}],{barmode:'group',margin:{t:10,r:10,b:35,l:50},paper_bgcolor:'transparent',plot_bgcolor:'transparent',legend:{orientation:'h'},yaxis:axis(),xaxis:axis()},{displayModeBar:false,responsive:true});
+  Plotly.newPlot('marginChart',[{x:a.map(x=>x.year),y:a.map(x=>x.operating_margin),name:'Operating margin',type:'scatter',mode:'lines+markers'},{x:a.map(x=>x.year),y:a.map(x=>x.net_margin),name:'Net margin',type:'scatter',mode:'lines+markers'}],{margin:{t:10,r:10,b:35,l:50},paper_bgcolor:'transparent',plot_bgcolor:'transparent',legend:{orientation:'h'},yaxis:{...axis(),ticksuffix:'%'},xaxis:axis()},{displayModeBar:false,responsive:true});
+  Plotly.newPlot('cashChart',[{x:a.map(x=>x.year),y:a.map(x=>x.operating_cash_flow),name:'Operating cash flow',type:'bar'}],{margin:{t:10,r:10,b:35,l:50},paper_bgcolor:'transparent',plot_bgcolor:'transparent',yaxis:axis(),xaxis:axis()},{displayModeBar:false,responsive:true});
+}
+function renderTable(period){
+  const rows=ratios.filter(x=>x.period===period).slice().sort((a,b)=>Number(b.year)-Number(a.year));
+  const cols=[['year','Year'],['revenue','Revenue'],['operating_income','Operating income'],['net_income','Net income'],['operating_cash_flow','Operating cash flow'],['total_assets','Assets'],['total_liabilities','Liabilities'],['total_equity','Equity'],['cash','Cash'],['inventory','Inventory'],['revenue_growth','Growth'],['operating_margin','Op. margin'],['net_margin','Net margin'],['debt_ratio','Debt ratio'],['equity_ratio','Equity ratio'],['roa','ROA'],['roe','ROE']];
+  if(!rows.length){document.getElementById('table').innerHTML='<div class="table-wrap"><table><tr><td>해당 보고서 데이터가 없습니다.</td></tr></table></div>';return;}
+  document.getElementById('table').innerHTML='<div class="table-wrap"><table><thead><tr>'+cols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(c=>`<td>${c[0]==='year'?r[c[0]]:['revenue_growth','operating_margin','net_margin','debt_ratio','equity_ratio','roa','roe'].includes(c[0])?pct(r[c[0]]):fmt(r[c[0]])}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>';
+}
+function renderPeers(){
+  const peers=metadata.peerfirms||[];document.getElementById('peerTable').innerHTML='<div class="table-wrap"><table class="peer"><thead><tr><th>Peer firm</th><th>Focus</th><th>Note</th></tr></thead><tbody>'+peers.map(p=>`<tr><td>${p.name}</td><td>${p.focus}</td><td class="peer-note">${p.note}</td></tr>`).join('')+'</tbody></table></div>';
+}
+load();
+</script>
+</body>
+</html>
