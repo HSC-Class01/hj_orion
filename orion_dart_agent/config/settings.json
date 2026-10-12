@@ -1,0 +1,33 @@
+{
+  "company_name": "오리온",
+  "corp_code": "",
+  "start_year": 2010,
+  "report_types": {
+    "annual": "11011",
+    "half_year": "11012",
+    "q1": "11013",
+    "q3": "11014"
+  },
+  "peer_firms": [
+    {
+      "name": "롯데웰푸드",
+      "sector": "식품 제조",
+      "dart_search": "https://dart.fss.or.kr/dsab002/main.do?autoSearch=true&textCrpNm=롯데웰푸드"
+    },
+    {
+      "name": "크라운제과",
+      "sector": "제과",
+      "dart_search": "https://dart.fss.or.kr/dsab002/main.do?autoSearch=true&textCrpNm=크라운제과"
+    },
+    {
+      "name": "농심",
+      "sector": "식품 제조",
+      "dart_search": "https://dart.fss.or.kr/dsab002/main.do?autoSearch=true&textCrpNm=농심"
+    },
+    {
+      "name": "삼양식품",
+      "sector": "식품 제조",
+      "dart_search": "https://dart.fss.or.kr/dsab002/main.do?autoSearch=true&textCrpNm=삼양식품"
+    }
+  ]
+}

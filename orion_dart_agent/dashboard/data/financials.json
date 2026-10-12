@@ -1,0 +1,33 @@
+{
+  "company": "오리온",
+  "currency_unit": "KRW",
+  "amount_unit": "API 원 단위",
+  "generated_at": null,
+  "records": [],
+  "peers": [
+    {
+      "name": "롯데웰푸드",
+      "sector": "식품 제조",
+      "dart_search": "https://dart.fss.or.kr/dsab002/main.do?autoSearch=true&textCrpNm=롯데웰푸드"
+    },
+    {
+      "name": "크라운제과",
+      "sector": "제과",
+      "dart_search": "https://dart.fss.or.kr/dsab002/main.do?autoSearch=true&textCrpNm=크라운제과"
+    },
+    {
+      "name": "농심",
+      "sector": "식품 제조",
+      "dart_search": "https://dart.fss.or.kr/dsab002/main.do?autoSearch=true&textCrpNm=농심"
+    },
+    {
+      "name": "삼양식품",
+      "sector": "식품 제조",
+      "dart_search": "https://dart.fss.or.kr/dsab002/main.do?autoSearch=true&textCrpNm=삼양식품"
+    }
+  ],
+  "notes": [
+    "수집 실행 후 데이터가 표시됩니다.",
+    "API가 제공하지 않는 기간의 값은 비워 둡니다."
+  ]
+}
