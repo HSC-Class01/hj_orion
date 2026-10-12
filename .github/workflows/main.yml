@@ -1,0 +1,33 @@
+
+name: Update DART Data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 1 * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r orion_dart_agent/requirements.txt
+
+      - name: Check project files
+        run: |
+          ls -la orion_dart_agent
+          ls -la orion_dart_agent/src
