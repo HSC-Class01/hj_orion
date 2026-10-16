@@ -1,6 +1,6 @@
 # Orion DART Financial Analysis Agent
 
-> [![🔗 대시보드 바로가기](https://img.shields.io/badge/%F0%9F%94%97-%EB%8C%80%EC%8B%9C%EB%B3%B4%EB%93%9C%20%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0-2563eb?style=for-the-badge)](https://HSC-Class01.github.io/orion-dart-agent/)
+> [![🔗 대시보드 바로가기](https://img.shields.io/badge/%F0%9F%94%97-%EB%8C%80%EC%8B%9C%EB%B3%B4%EB%93%9C%20%EB%B0%94%EB%A1%9C%EA%B0%80%EA%B8%B0-2563eb?style=for-the-badge)](https://hsc-class01.github.io/hj_orion/)
 
 오리온의 OpenDART 공시와 재무제표를 수집해 주요 재무 수치·재무비율을 계산하고 GitHub Pages 대시보드로 보여주는 프로젝트입니다.
 
@@ -25,14 +25,14 @@
 4. README와 `dashboard-badge.svg`의 Pages URL에 저장소 이름이 다르면 실제 URL로 바꿉니다.
 
 ## 3. GitHub Pages 배포
-1. 저장소의 **Settings → Pages**로 이동합니다.
+1. 저장소의 **Settings → Pages**로 이동해 Source를 **GitHub Actions**로 설정합니다.
 2. Build and deployment의 Source를 **GitHub Actions**로 설정합니다.
 3. **Actions** 탭에서 `Update Orion DART data`를 수동 실행합니다. 최초 실행은 데이터가 없어도 dashboard 배포용 파일을 생성합니다.
-4. `Deploy dashboard to GitHub Pages` 워크플로가 성공하면 `https://HSC-Class01.github.io/orion-dart-agent/`에서 확인합니다.
+4. `Deploy dashboard to GitHub Pages` 워크플로가 성공하면 `https://hsc-class01.github.io/hj_orion/`에서 확인합니다.
 5. 저장소 오른쪽 **About → 톱니바퀴(Edit repository details) → Website**에 위 대시보드 URL을 넣고 저장합니다.
 
 ## 4. 자동 업데이트 일정
-GitHub cron은 UTC 기준이므로 매일 15:05 UTC에 확인 작업을 실행합니다. 스크립트가 `Asia/Seoul` 날짜를 확인해 한국시간 매월 1일에만 공시를 수집·갱신합니다. `workflow_dispatch`로 언제든 수동 실행할 수 있습니다. GitHub의 cron은 부하에 따라 실행이 지연될 수 있습니다.
+GitHub cron은 UTC 기준 매월 1일 00:00 UTC(한국시간 09:00)에 실행됩니다. 수동 실행은 날짜와 관계없이 수집을 시작합니다. `workflow_dispatch`로 언제든 수동 실행할 수 있습니다. GitHub의 cron은 부하에 따라 실행이 지연될 수 있습니다.
 
 ## 5. 수집 및 분석 범위
 - 보고서 코드: 사업보고서 `11011`, 반기보고서 `11012`, 1분기 `11013`, 3분기 `11014`
@@ -64,4 +64,4 @@ assets/dashboard-badge.svg
 - `DART_API_KEY` 오류: Actions Secrets의 이름과 값 확인
 - Pages 404: Settings → Pages가 GitHub Actions인지, Pages workflow가 성공했는지 확인
 - 데이터가 비어 있음: 해당 연도·보고서의 공시 여부, OpenDART API 제공 범위, API 응답의 `status`/`message` 확인
-- Actions workflow 오류: Actions 로그의 첫 번째 실패 단계 확인; Python 버전은 3.11, 의존성은 `requirements.txt`로 고정합니다.
+- Actions workflow 오류: Actions 로그의 첫 번째 실패 단계를 확인합니다. `DART_API_KEY` Secret과 GitHub Pages의 GitHub Actions 설정을 확인하세요. Python 3.11과 고정 의존성을 사용합니다.
