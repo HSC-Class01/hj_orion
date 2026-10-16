@@ -8,7 +8,7 @@ target.parent.mkdir(parents=True,exist_ok=True)
 config=json.loads((ROOT/"config/settings.json").read_text(encoding="utf-8"))
 peers=config.get("peer_firms",[])
 if source.exists() and source.stat().st_size:
-    df=pd.read_csv(source)
+    df=pd.read_csv(source,dtype={"report_code":str,"corp_code":str,"receipt_no":str,"receipt_date":str})
 else: df=pd.DataFrame()
 # pandas NaN -> JSON null
 records=[]
