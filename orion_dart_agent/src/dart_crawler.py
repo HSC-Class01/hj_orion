@@ -23,11 +23,11 @@ if not KEY:
 session = requests.Session()
 session.headers.update({"User-Agent": "orion-dart-financial-analysis/1.0"})
 retry = Retry(
-    total=4,
-    connect=4,
-    read=3,
-    status=3,
-    backoff_factor=1.5,
+    total=2,
+    connect=2,
+    read=2,
+    status=2,
+    backoff_factor=0.8,
     status_forcelist=(429, 500, 502, 503, 504),
     allowed_methods=frozenset(["GET"]),
     respect_retry_after_header=True,
@@ -177,6 +177,8 @@ def main():
             try:
                 item=fetch_accounts(corp,year,code)
                 if item: rows.append(item); print(f"Collected {key} ({item['fs_div']})")
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+                raise RuntimeError(f"OpenDART connection failed while collecting {key}; stopping early instead of repeating a network outage for every period.") from e
             except Exception as e:
                 print(f"Warning: {key} skipped: {e}")
     new=pd.DataFrame(rows)
