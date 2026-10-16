@@ -4,6 +4,8 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,10 +22,21 @@ if not KEY:
 
 session = requests.Session()
 session.headers.update({"User-Agent": "orion-dart-financial-analysis/1.0"})
+retry = Retry(
+    total=4,
+    connect=4,
+    read=3,
+    status=3,
+    backoff_factor=1.5,
+    status_forcelist=(429, 500, 502, 503, 504),
+    allowed_methods=frozenset(["GET"]),
+    respect_retry_after_header=True,
+)
+session.mount("https://", HTTPAdapter(max_retries=retry))
 
 def get_json(endpoint, params):
     p = {**params, "crtfc_key": KEY}
-    r = session.get(f"{API}/{endpoint}", params=p, timeout=45)
+    r = session.get(f"{API}/{endpoint}", params=p, timeout=(15, 45))
     r.raise_for_status()
     data = r.json()
     status = str(data.get("status", ""))
@@ -39,7 +52,7 @@ def resolve_corp_code():
         return configured
     path = RAW / "corpCode.xml"
     if not path.exists():
-        r = session.get(f"{API}/corpCode.xml", params={"crtfc_key": KEY}, timeout=60)
+        r = session.get(f"{API}/corpCode.xml", params={"crtfc_key": KEY}, timeout=(15, 45))
         r.raise_for_status()
         with zipfile.ZipFile(io.BytesIO(r.content)) as z:
             xml = z.read("CORPCODE.xml")
