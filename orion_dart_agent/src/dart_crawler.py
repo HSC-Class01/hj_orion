@@ -163,7 +163,7 @@ def main():
         print(f"Skip: Korea date is {now.date()}, scheduled collection runs on day 1. Use --force for manual collection.")
         return
     corp = resolve_corp_code()
-    existing = pd.read_csv(OUT) if OUT.exists() else pd.DataFrame()
+    existing = pd.read_csv(OUT, dtype={"report_code":str,"corp_code":str,"receipt_no":str,"receipt_date":str}) if OUT.exists() else pd.DataFrame()
     old_keys = set()
     if not existing.empty:
         old_keys = set(existing.apply(lambda r:f"{int(r['year'])}-{r['report_code']}",axis=1))
