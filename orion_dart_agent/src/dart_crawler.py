@@ -1,5 +1,5 @@
 from __future__ import annotations
-import io, json, os, sys, zipfile
+import io, json, os, re, sys, zipfile
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -44,7 +44,7 @@ def resolve_corp_code():
         with zipfile.ZipFile(io.BytesIO(r.content)) as z:
             xml = z.read("CORPCODE.xml")
         path.write_bytes(xml)
-    df = pd.read_xml(path, xpath="//list", dtype={"corp_code": str, "stock_code": str})
+    df = pd.read_xml(path, xpath="//list", dtype={"corp_code": str, "stock_code": str}, parser="etree")
     matches = df[df["corp_name"].astype(str).str.strip().eq(CONFIG["company_name"])]
     if matches.empty:
         matches = df[df["corp_name"].astype(str).str.contains("오리온", na=False)]
@@ -58,28 +58,42 @@ def resolve_corp_code():
     return code
 
 def filing_list(corp, year, reprt_code):
-    data = get_json("list.json", {"corp_code":corp,"bgn_de":f"{year}0101","end_de":f"{year}1231","page_no":1,"page_count":100,"last_reprt_at":"Y"})
+    # DART list.json is filtered by receipt date, not fiscal year. Annual
+    # reports are normally filed in the following calendar year.
+    filing_year = year + 1 if reprt_code == "11011" else year
+    data = get_json("list.json", {
+        "corp_code": corp,
+        "bgn_de": f"{filing_year}0101",
+        "end_de": f"{filing_year}1231",
+        "pblntf_ty": "A",
+        "page_no": 1,
+        "page_count": 100,
+        "last_reprt_at": "Y",
+    })
     rows = data.get("list", []) or []
-    wanted = {"11011":"사업보고서","11012":"반기보고서","11013":"분기보고서","11014":"분기보고서"}[reprt_code]
-    # Match title and period: quarter/half-year reports have report code only in financial API,
-    # so select filing by report name and date where possible.
     candidates = []
-    for x in rows:
-        title = str(x.get("report_nm", ""))
-        if wanted not in title: continue
-        if reprt_code == "11011" and "사업보고서" not in title: continue
-        if reprt_code == "11012" and "반기보고서" not in title: continue
-        if reprt_code in ("11013","11014") and "분기보고서" not in title: continue
-        candidates.append(x)
-    if not candidates: return None
-    if reprt_code == "11013":
-        q = [x for x in candidates if "1분기" in str(x.get("report_nm", ""))]
-        candidates = q or candidates
-    elif reprt_code == "11014":
-        q = [x for x in candidates if "3분기" in str(x.get("report_nm", ""))]
-        candidates = q or candidates
-    return sorted(candidates, key=lambda x:str(x.get("rcept_dt","")))[-1]
-
+    for item in rows:
+        title = str(item.get("report_nm", ""))
+        if reprt_code == "11011" and "사업보고서" not in title:
+            continue
+        if reprt_code == "11012" and "반기보고서" not in title:
+            continue
+        if reprt_code in ("11013", "11014"):
+            if "분기보고서" not in title:
+                continue
+            period_match = re.search(r"\((\d{4})\.(\d{2})\)", title)
+            month = int(period_match.group(2)) if period_match else 0
+            if month == 0:
+                receipt = str(item.get("rcept_dt", ""))
+                month = int(receipt[4:6]) if len(receipt) >= 6 else 0
+            if reprt_code == "11013" and month not in (3, 4, 5, 6):
+                continue
+            if reprt_code == "11014" and month not in (9, 10, 11, 12):
+                continue
+        candidates.append(item)
+    if not candidates:
+        return None
+    return max(candidates, key=lambda item: str(item.get("rcept_dt", "")))
 def parse_amount(v):
     if v is None: return None
     s = str(v).strip().replace(",", "")
@@ -146,7 +160,7 @@ def main():
         for code in ("11011","11012","11013","11014"):
             key=f"{year}-{code}"
             # Refresh current year and current/previous year for amendments; keep prior saved rows otherwise.
-            if key in old_keys and not force and year < now.year-1: continue
+            if key in old_keys and "--refresh-all" not in sys.argv and year < now.year-1: continue
             try:
                 item=fetch_accounts(corp,year,code)
                 if item: rows.append(item); print(f"Collected {key} ({item['fs_div']})")
